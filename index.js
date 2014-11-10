@@ -12,7 +12,7 @@ var isAbsolute = function(p) {
 var rebaseUrls = function(css, options) {
     return rework(css)
         .use(rework.url(function(url){
-            if (isAbsolute(url) && validator.isURL(url)) {
+            if (isAbsolute(url) || validator.isURL(url)) {
                 return url;
             }
             if (/^(data:.*;.*,)/.test(url)) {
@@ -26,6 +26,9 @@ var rebaseUrls = function(css, options) {
             }
             if (options.convertToAbsolute) {
                 p = "/" + p;
+            }
+            if (typeof options.urlProcess === 'function') {
+              return options.urlProcess(p);
             }
             return p;
         }))
@@ -41,6 +44,7 @@ module.exports = function(options) {
         var css = rebaseUrls(file.contents.toString(), {
             currentDir: path.dirname(file.path),
             root: path.join(file.cwd, root),
+            urlProcess: options.urlProcess,
             convertToAbsolute: convertToAbsolute
         });
 
