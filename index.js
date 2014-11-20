@@ -1,18 +1,24 @@
 var rework = require('rework');
 var path = require('path');
 var through = require('through2');
-var validator = require('validator');
 
 var isAbsolute = function(p) {
     var normal = path.normalize(p);
     var absolute = path.resolve(p);
     return normal == absolute;
+},
+isURL = function(url){
+    var testPart = url.substr(0,6);
+    if (testPart === "http:/" || testPart === "https:"){
+      return true;
+    }
+    return testPart.substr(0, 2) === "//";
 };
 
 var rebaseUrls = function(css, options) {
     return rework(css)
         .use(rework.url(function(url){
-            if (isAbsolute(url) || validator.isURL(url)) {
+            if (isAbsolute(url) || isURL(url)) {
                 return url;
             }
             if (/^(data:.*;.*,)/.test(url)) {
@@ -28,7 +34,7 @@ var rebaseUrls = function(css, options) {
                 p = "/" + p;
             }
             if (typeof options.urlProcess === 'function') {
-              return options.urlProcess(p);
+                return options.urlProcess(p);
             }
             return p;
         }))
